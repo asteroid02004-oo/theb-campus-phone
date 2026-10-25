@@ -1,0 +1,23 @@
+services:
+  - type: web
+    name: deobi-campus-phone
+    runtime: node
+    plan: free
+    buildCommand: npm run build
+    startCommand: npm start
+    healthCheckPath: /healthz
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: NODE_VERSION
+        value: '24'
+      - key: GEMINI_API_KEY
+        sync: false
+      - key: FREE_TIER_CONFIRMED
+        sync: false
+      - key: SESSION_SECRET
+        generateValue: true
+      - key: GEMINI_MODEL
+        value: gemini-3.1-flash-lite
+      - key: MAX_DAILY_REQUESTS
+        value: '10000'
