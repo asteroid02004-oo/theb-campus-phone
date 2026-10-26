@@ -13,10 +13,10 @@
 ## 在 Cloudflare 连接 GitHub
 
 1. 登录 Cloudflare，进入 Workers & Pages → Create application → GitHub，选择仓库 `asteroid02004-oo/theb-campus-phone`。
-2. 生产分支选择 `cloudflare-workers`，根目录留空；Worker 名称必须为 `theb-campus-phone`，与 wrangler.jsonc 一致。
+2. 生产分支使用 `main`，根目录留空或 `/`；Worker 名称为 `thebhighschool`，与 wrangler.jsonc 一致。
 3. Build command 填 `npm run build`，Deploy command 填 `npx wrangler deploy`。选择 Workers Free，无需为了此项目升级付费方案。
 4. 保存并部署。Wrangler 会自动创建并绑定 D1，代码会以幂等方式初始化限流表，后续部署复用绑定。
-5. 部署成功后，使用 Cloudflare 实际显示的 `https://theb-campus-phone.<你的子域>.workers.dev/` 网址。不要自行猜测子域。
+5. 当前公开网址：https://thebhighschool.asteroid02004.workers.dev/ 。网页已验证可访问；默认共享聊天是否就绪以 `/api/status` 和实际回复为准。
 
 仅需个人连接时，完成上面步骤即可。要启用站长默认共享连接，在 Worker → Settings → Variables and Secrets 添加以下 Secret，然后重新部署：
 

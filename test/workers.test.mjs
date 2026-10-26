@@ -98,7 +98,7 @@ test('shared client keeps signed same-origin sessions and personal failures neve
 
 test('deployment configuration auto-provisions D1 and separates static resource paths from API paths',()=>{
  const config=JSON.parse(fs.readFileSync(new URL('../wrangler.jsonc',import.meta.url),'utf8'));
- assert.equal(config.name,'theb-campus-phone');assert.equal(config.d1_databases[0].binding,'DB');assert(!config.d1_databases[0].database_id);
+ assert.equal(config.name,'thebhighschool');assert.equal(config.d1_databases[0].binding,'DB');assert(!config.d1_databases[0].database_id);
  assert.deepEqual(config.assets.run_worker_first,['/api/*','/healthz']);assert.equal(config.vars.MAX_DAILY_REQUESTS,'10000');
  assert(!JSON.stringify(config).includes(owner));
 });
