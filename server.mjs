@@ -54,15 +54,15 @@ export function createApp({env:input=process.env,upstream=fetch,databasePath}={}
           if(!origin)return await send(res,json(403,'请从游戏页面发送请求。'));
           if(!['GET','POST'].includes(String(req.headers['access-control-request-method']||'')))return await send(res,json(405,'请求方式不正确。'),false,corsOrigin);
           const requested=String(req.headers['access-control-request-headers']||'').toLowerCase().split(',').map(x=>x.trim()).filter(Boolean);
-          if(requested.some(x=>!['content-type','x-phone-token'].includes(x)))return await send(res,json(403,'请求头不受支持。'),false,corsOrigin);
-          return await send(res,new Response(null,{status:204,headers:{'Access-Control-Allow-Methods':'GET, POST','Access-Control-Allow-Headers':'Content-Type, X-Phone-Token','Access-Control-Max-Age':'600'}}),false,corsOrigin);
+          if(requested.some(x=>!['content-type','x-phone-token','x-player-gemini-key'].includes(x)))return await send(res,json(403,'请求头不受支持。'),false,corsOrigin);
+          return await send(res,new Response(null,{status:204,headers:{'Access-Control-Allow-Methods':'GET, POST','Access-Control-Allow-Headers':'Content-Type, X-Phone-Token, X-Player-Gemini-Key','Access-Control-Max-Age':'600'}}),false,corsOrigin);
         }
         if(!['GET','POST'].includes(req.method))return await send(res,json(405,'请求方式不正确。'),false,corsOrigin);
         if(req.method==='POST'&&!origin)return await send(res,json(403,'请从游戏页面发送消息。'),false,corsOrigin);
         const chunks=[];let bytes=0;
         for await(const chunk of req){bytes+=chunk.length;if(bytes>160000)return await send(res,json(413,'消息内容过长。'),false,corsOrigin);chunks.push(chunk)}
         const headers=new Headers();
-        for(const name of ['cookie','content-type','x-phone-token'])if(req.headers[name])headers.set(name,req.headers[name]);
+        for(const name of ['cookie','content-type','x-phone-token','x-player-gemini-key'])if(req.headers[name]!==undefined)headers.set(name,req.headers[name]);
         const forwarded=trustProxy?String(req.headers['x-forwarded-for']||'').split(',').map(x=>x.trim()).filter(Boolean).at(-1):'';
         headers.set('cf-connecting-ip',forwarded||req.socket.remoteAddress||'unknown');
         // Only approved origins reach this point. Verify the signed token in handleApi;
