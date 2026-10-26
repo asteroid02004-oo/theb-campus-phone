@@ -1,13 +1,15 @@
 {
-  "name": "deobi-campus-phone",
+  "name": "theb-campus-phone-workers",
+  "version": "1.0.0",
   "private": true,
   "type": "module",
-  "version": "1.0.0",
-  "engines": {
-    "node": ">=24.0.0 <25"
-  },
+  "engines": {"node": ">=22.0.0"},
   "scripts": {
-    "build": "node --check server.mjs",
-    "start": "node server.mjs"
-  }
+    "build": "node scripts/check-build.mjs",
+    "test": "node --test test/*.test.mjs",
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy",
+    "deploy:check": "wrangler deploy --dry-run"
+  },
+  "devDependencies": {"wrangler": "4.92.0"}
 }

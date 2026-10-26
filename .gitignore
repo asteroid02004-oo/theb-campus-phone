@@ -1,10 +1,6 @@
 node_modules/
-.env
-.env.*
-!.env.example
-.runtime/
-*.sqlite
-*.sqlite-*
+.wrangler/
+.dev.vars*
+.env*
 *.log
-*.zip
-.DS_Store
+dist/
