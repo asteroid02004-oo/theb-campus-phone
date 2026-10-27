@@ -9,6 +9,12 @@ const base='https://campus-test.workers.dev';
 const owner='owner-test-key-abcdefghijklmnopqrstuvwxyz';
 const payload=()=>({chatId:'ju',player:{name:'夏宁',identity:'普通学生'},messages:[{role:'user',content:'明天读书会见。'}],memory:'约好把上次的书带来。'});
 const reply=text=>Response.json({candidates:[{content:{parts:[{text}]}}]});
+test('shared vocabulary dictionary keeps owner keys server-side and requires the existing signed session',async t=>{
+ const f=fixture(t),calls=[],worker=createWorker(async(url,options)=>{calls.push({url,options});return reply(JSON.stringify({words:[{term:'campus',meaning:'校园',example:'Our campus is quiet.',translation:'校园很安静。'}]}))});
+ const payload=JSON.stringify({words:[{term:'campus',example:'Our campus is quiet.'}]}),headers={origin:base,'content-type':'application/json'};
+ assert.equal((await worker.fetch(f.request('/api/vocabulary',{method:'POST',headers,body:payload}),f.env)).status,403);assert.equal(calls.length,0);
+ const {token,cookie}=await f.signed();const response=await worker.fetch(f.request('/api/vocabulary',{method:'POST',headers:{...headers,cookie,'x-phone-token':token},body:payload}),f.env);assert.equal(response.status,200);const result=await response.json();assert.equal(result.words[0].meaning,'校园');assert.equal(calls.length,1);assert.equal(calls[0].options.headers['x-goog-api-key'],owner);assert.ok(!JSON.stringify(result).includes(owner));assert.ok(!calls[0].options.body.includes('李贤在'));
+});
 function fixture(t){
  const db=new DatabaseSync(':memory:');t.after(()=>db.close());let creates=0;
  const DB={prepare(sql){if(sql.startsWith('CREATE'))creates++;return {async run(){return db.prepare(sql).run()},bind(...args){return {async first(){return db.prepare(sql).get(...args)},async run(){return db.prepare(sql).run(...args)}}}}}};
