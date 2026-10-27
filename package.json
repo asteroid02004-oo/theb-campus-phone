@@ -3,13 +3,18 @@
   "version": "1.0.0",
   "private": true,
   "type": "module",
-  "engines": {"node": ">=22.0.0"},
+  "engines": {
+    "node": ">=22.0.0"
+  },
   "scripts": {
-    "build": "node scripts/check-build.mjs",
+    "build": "node scripts/build-game.mjs",
     "test": "node --test test/*.test.mjs",
     "dev": "wrangler dev",
     "deploy": "wrangler deploy",
     "deploy:check": "wrangler deploy --dry-run"
   },
-  "devDependencies": {"wrangler": "4.92.0"}
+  "devDependencies": {
+    "wrangler": "4.92.0",
+    "esbuild": "0.28.0"
+  }
 }

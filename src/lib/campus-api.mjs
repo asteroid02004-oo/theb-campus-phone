@@ -1,3 +1,4 @@
+import {forumRequest,forumPrompt,forumResult} from './forum-protocol.mjs';
 import {chatMessages} from './chat-text.mjs';
 import {CHARACTERS as CAMPUS_CHARACTERS,campusPrompt,PERSONA_VERSION} from './campus-personas.mjs';
 const encoder=new TextEncoder();
@@ -30,6 +31,7 @@ export async function handleApi(req,env,upstream=fetch){
  if(req.method==='GET'&&route==='/api/session')return session(req,env);
  if(req.method==='GET'&&route==='/api/status')return reply(200,{configured:!!env.GEMINI_API_KEY&&env.FREE_TIER_CONFIRMED==='true',verified:false,playerKeysAvailable:true,personaVersion:PERSONA_VERSION,provider:'Gemini',model:env.GEMINI_MODEL||'gemini-3.5-flash-lite'});
  if(route==='/api/chat')return handleCampusChat(req,env,upstream);
+ if(route==='/api/forum')return handleForum(req,env,upstream);
  return reply(404,{error:'接口不存在。'});
 }
 async function handleCampusChat(req,env,upstream){
@@ -76,4 +78,12 @@ function validatedCampusState(raw,chatId,name){
  let sponsorship={target:null,isTarget:false,weeklyFee:100000,bookings:[]};if(raw.sponsorship){const f=raw.sponsorship;if(f.target!==null&&!Object.hasOwn(CAMPUS_CHARACTERS,f.target))throw invalid();if(!Array.isArray(f.bookings)||f.bookings.length>6)throw invalid();const bookings=f.bookings.map(b=>{if(!b||typeof b.date!=='string'||!/^\d{1,2}月\d{1,2}日$/.test(b.date)||!['tutoring','outing'].includes(b.kind)||!['booked','completed','cancelled','missed'].includes(b.status))throw invalid();return {date:b.date,kind:b.kind,status:b.status}});sponsorship={target:f.target,isTarget:f.target===chatId,weeklyFee:100000,bookings}}
  let finalExamination=null;if(raw.finalExamination){const f=raw.finalExamination;if(!Number.isFinite(f.score)||f.score<0||f.score>750||!Number.isInteger(f.rank)||f.rank<1||!['grind','romance','shine','growth'].includes(f.ending))throw invalid();finalExamination={score:f.score,rank:f.rank,ending:f.ending}}
  return {day:raw.day,date,grade:raw.grade,identity:identities[identity],playerGender:'女',address:{base,preferred:r.affection<35?base:r.affection<70?name:nickname},attributes,relationship:{affection:r.affection,guard:r.guard,bond:r.bond},events,completed:raw.completed===true,expelled:raw.expelled===true,bankrupt:raw.bankrupt===true,sponsorship,exam,finalExamination};
+}
+
+async function handleForum(req,env,upstream){
+ if(req.method!=='POST')return reply(405,{error:'请求方式不正确。'});
+ if(req.headers.get('origin')!==new URL(req.url).origin||!await authorized(req,env))return reply(403,{error:'页面连接已过期。'});
+ if(!env.GEMINI_API_KEY||env.FREE_TIER_CONFIRMED!=='true')return reply(503,{error:'默认连接暂未就绪，可在设置填写个人连接。'});
+ if(!req.headers.get('content-type')?.includes('application/json'))return reply(400,{error:'帖子格式不正确。'});
+ try{const raw=await req.text();if(raw.length>160000)return reply(413,{error:'帖子内容过长。'});let parsed;try{parsed=JSON.parse(raw)}catch{return reply(400,{error:'帖子格式不正确。'})}const data=forumRequest(parsed);await rateLimit(req,env);const text=await ask(env,[{role:'user',content:JSON.stringify(data)}],forumPrompt(data),2200,upstream);return reply(200,forumResult(text,data));}catch(e){return reply(e.status||503,{error:e.status?e.message:'同学这次暂时没有新的回复。'})}
 }

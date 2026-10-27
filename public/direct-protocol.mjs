@@ -1,3 +1,4 @@
+import {forumRequest,forumPrompt,forumResult} from './forum-protocol.mjs';
 import {CHARACTERS,campusPrompt} from './campus-personas.mjs';
 import {validatedCampusState} from './direct-core.mjs';
 import {askProvider,normalizeConnection} from './provider-api.mjs';
@@ -23,3 +24,5 @@ export async function directReply(data,key,{fetchImpl=fetch,model='gemini-3.5-fl
  const outgoing=chatMessages(text);if(!outgoing.length)throw Object.assign(Error('这次没有收到聊天文字，请重试。'),{status:502});
  return {chatId,reply:outgoing.join('\n'),messages:outgoing,memory:remembered,consumed,model:selected.model,provider:selected.provider,keyMode:'personal-direct'};
 }
+
+export async function directForumReply(raw,key,{fetchImpl=fetch,model='gemini-3.5-flash-lite',connection}={}){const data=forumRequest(raw),selected=normalizeConnection(connection||{model});const text=await askProvider(selected,key,[{role:'user',content:JSON.stringify(data)}],forumPrompt(data),selected.maxOutputTokens,{fetchImpl});return {...forumResult(text,data),model:selected.model,provider:selected.provider};}

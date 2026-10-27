@@ -1,0 +1,70 @@
+/* Measure the simulated screen, independently of container-unit support. */
+:root{--phone-u:1vw;--phone-v:1vh;--viewport-h:100vh;--viewport-top:0px;--safe-top:env(safe-area-inset-top,0px);--safe-bottom:env(safe-area-inset-bottom,0px);--safe-left:env(safe-area-inset-left,0px);--safe-right:env(safe-area-inset-right,0px)}
+@supports(height:100dvh){:root{--viewport-h:100dvh}}
+html{width:100%;height:100%;overflow:hidden;-webkit-text-size-adjust:100%;text-size-adjust:100%}
+body{position:fixed;inset:var(--viewport-top) 0 auto;width:100%;height:var(--viewport-h);min-height:0;overflow:hidden;overscroll-behavior:none}
+.device{width:min(calc(var(--viewport-h)*.4367),418px);height:calc(var(--viewport-h)*.94);max-height:900px;max-width:calc(100% - 24px);min-width:0;aspect-ratio:auto}
+.screen{--phone-u:min(calc(var(--viewport-h)*.004367 - .18px),4px);--phone-v:min(calc(var(--viewport-h)*.0094 - .18px),8.82px);--status-height:max(38px,calc(var(--phone-v)*7.2));min-width:0;min-height:0;isolation:isolate}
+.status{height:var(--status-height);font-size:clamp(12px,calc(var(--phone-u)*3.5),16px)}
+.status-right{min-width:0;gap:clamp(5px,calc(var(--phone-u)*1.7),8px)}
+.app{inset:var(--status-height) 0 0;min-width:0;min-height:0}
+.app>*,.sheet>*,.campus-card,.kkt-row-copy,.text-wrap{min-width:0}
+.campus-body,.kkt-scroll,.kkt-stream,.scroll,.onboard,.kkt-sheet-body,.fixed-reply-panel{overscroll-behavior:contain;-webkit-overflow-scrolling:touch;overflow-wrap:anywhere}
+.campus-tabs{flex-wrap:wrap;gap:0 calc(var(--phone-u)*4)}
+.campus-top h2{min-width:0;overflow-wrap:anywhere}
+.campus-top>button,.campus-top>span,.kkt-header>div{flex-shrink:0}
+/* iOS zooms focused inputs below 16px and can leave the lock screen magnified. */
+.screen input:not([type=radio]):not([type=checkbox]):not([type=range]),.screen textarea,.screen select,.screen .campus-form input,.screen .campus-form textarea,.screen .campus-form select,.screen .kkt-search-wrap input{font-size:max(16px,calc(var(--phone-u)*3.8))!important;max-width:100%}
+.screen input[type=radio],.screen input[type=checkbox]{flex-shrink:0}
+.onboard{padding-bottom:max(calc(var(--phone-u)*7),calc(var(--safe-bottom) + 12px));scroll-padding-bottom:24px}
+.onboard form,.campus-form{min-width:0}
+.kkt-compose{position:relative;padding-bottom:max(22px,calc(var(--safe-bottom) + 6px))}
+.kkt-compose textarea{min-height:44px;max-height:96px}
+.kkt-compose button{min-height:44px;min-width:44px;flex-shrink:0}
+.kkt-message .text-wrap{max-width:calc(100% - var(--phone-u)*13)}
+.kkt-message.me .text-wrap{max-width:85%}
+.chat-error{flex-shrink:0;max-height:28%;overflow-y:auto}
+.school-schedule,.school-calendar-grid,.school-week-grid,.aid-gift-grid{min-width:0}
+.school-calendar-grid>*{min-width:0;overflow-wrap:anywhere}
+.rank-table{table-layout:fixed}
+.rank-table td,.rank-table th{overflow-wrap:anywhere}
+/* Explicit zero-minimum tracks and square buttons avoid Safari grid overflow. */
+.lock{--pin-size:max(44px,min(calc(var(--phone-u)*22),calc(var(--phone-v)*12)));--pin-row-gap:min(calc(var(--phone-u)*4.5),calc(var(--phone-v)*2.2));--pin-col-gap:min(calc(var(--phone-u)*6),calc(var(--phone-v)*3.4));padding:0;overflow:hidden}
+.lock .passcode-title{top:18%;font-size:clamp(20px,calc(var(--phone-u)*5.4),28px);line-height:1.3}
+.lock .dots{top:25%;gap:clamp(12px,calc(var(--phone-u)*5),22px)}
+.lock .dots i{width:clamp(7px,calc(var(--phone-u)*2.6),12px);height:clamp(7px,calc(var(--phone-u)*2.6),12px);flex:none}
+.lock .pin-message{position:absolute;top:29%;left:5%;right:5%;height:auto;margin:0;text-align:center;font-size:clamp(12px,calc(var(--phone-u)*3.1),15px);line-height:1.4}
+.lock .keypad{top:auto;bottom:max(11%,calc(var(--safe-bottom) + 42px));left:50%;width:calc(var(--pin-size)*3 + var(--pin-col-gap)*2);max-width:86%;height:calc(var(--pin-size)*4 + var(--pin-row-gap)*3);transform:translateX(-50%);display:grid;grid-template-columns:repeat(3,minmax(0,1fr));grid-template-rows:repeat(4,minmax(0,1fr));gap:var(--pin-row-gap) var(--pin-col-gap);margin:0;padding:0}
+.lock .key{width:100%;height:100%;min-width:0;min-height:0;aspect-ratio:auto;overflow:hidden;padding:0;appearance:none;-webkit-appearance:none;font-size:calc(var(--pin-size)*.49);border-radius:50%;touch-action:manipulation}
+.lock .key small{font-size:clamp(8px,calc(var(--pin-size)*.13),12px);letter-spacing:clamp(1px,calc(var(--pin-size)*.03),3px);height:auto;line-height:1.15;margin-top:3px;max-width:100%}
+.lock-cancel{bottom:max(3.5%,calc(var(--safe-bottom) + 5px));right:5%;min-width:60px;min-height:44px;padding:8px;font-size:clamp(14px,calc(var(--phone-u)*4),18px);touch-action:manipulation}
+@media(max-width:600px),(max-width:1024px) and (max-height:600px){
+ body{background:#000!important;background-image:none!important}
+ body:before,body:after{display:none!important}
+ .device{width:calc(100% - var(--safe-left) - var(--safe-right));max-width:100%;height:100%;max-height:none;padding:0;border-radius:0;box-shadow:none!important;background:#000}
+ .screen{width:100%;height:100%;border-radius:0;--phone-u:calc((100vw - var(--safe-left) - var(--safe-right))/100);--phone-v:calc(var(--viewport-h)/100);--status-height:max(40px,calc(var(--phone-v)*7.2),calc(var(--safe-top) + 28px))}
+ .status{padding-top:var(--safe-top)}
+ .lock-toggle{display:none}
+ .app{padding-bottom:max(calc(var(--phone-u)*5),calc(var(--safe-bottom) + 12px))}
+ .kkt-conversation{padding-bottom:0}
+ .kkt-nav{height:max(calc(var(--phone-u)*16),calc(54px + var(--safe-bottom)));padding-bottom:max(calc(var(--phone-u)*3),var(--safe-bottom))}
+ .dock{bottom:max(3.2%,calc(var(--safe-bottom) + 10px))}
+ .homebar{height:max(22px,calc(var(--safe-bottom) + 12px))}
+ .homebar:after{bottom:max(6px,var(--safe-bottom))}
+}
+@media(orientation:landscape) and (max-width:1024px) and (max-height:600px){
+ .device{max-width:560px}
+ .lock .passcode-title{left:0;right:50%;top:28%;font-size:clamp(20px,calc(var(--phone-u)*4.8),26px)}
+ .lock .dots{left:0;right:50%;top:45%;gap:12px}
+ .lock .pin-message{left:3%;right:53%;top:57%}
+ .lock .keypad{left:74%;top:50%;bottom:auto;transform:translate(-50%,-50%);max-width:46%}
+ .lock-cancel{bottom:max(2%,var(--safe-bottom));right:4%}
+ .app-grid{top:18%!important}
+ .home-note{left:5%;right:52%;bottom:10%;font-size:calc(var(--phone-u)*2.6)}
+ .dock{left:52%;right:3%;height:auto!important;bottom:max(4%,calc(var(--safe-bottom) + 8px));padding:calc(var(--phone-u)*2)!important;gap:calc(var(--phone-u)*1)!important}
+ .dock .app-icon{width:calc(var(--phone-u)*9)!important;height:calc(var(--phone-u)*9)!important}
+ .campus-top{height:52px;min-height:52px}
+ .kkt-header{height:56px;padding-top:6px;padding-bottom:6px}
+ .kkt-nav{height:52px;padding-bottom:4px}
+ .onboard{padding-top:24px}
+}

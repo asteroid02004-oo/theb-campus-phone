@@ -39,6 +39,12 @@
 
 存档格式未改。但不同域名的浏览器存储相互独立，旧 Render 或 GitHub Pages 进度需导出后在新站“设置与存档”中导入。个人连接在新域名单独填写。
 
-`public` 是可发布的游戏资源；`src` 是服务端接口；`editable` 保存已内联入网页的连接设置源码。修改 editable 后需同步到 public/index.html；修改客户端模块后需重新打包 public/api-client.js。GitHub 不应提交 node_modules、.dev.vars、.env 或 .wrangler。
+`game-src` 是当前手机与校园前端源代码，`game-src/authored-data.mjs` 保存作者修改后的剧情、共用动漫社剧情、校园祭及论坛文案。运行 `npm run build` 会重新生成 `public/index.html` 并打包聊天客户端。`public` 是可发布资源；`src` 是服务端接口；`editable` 保留迁移前的连接设置源码备份，当前修改请使用 `game-src`。GitHub 不应提交 node_modules、.dev.vars、.env 或 .wrangler。
+
+论坛支持自由发帖、评论和楼中楼。同学及男主根据当前帖子和玩家实际回复接话，复用已选择的个人服务商或站长默认连接。固定帖按照校历、社团经历、关系和对应校园祭活动出现。男主论坛账号固定为 leejaehyunow、tbzuyeon、__qfeed__、_0hoony、sunwoo。同学使用英文风格账号。
+
+动漫社共用三段剧情；第三段要求金泳勋或金善旴至少一人的好感严格高于70，进入随机池后以35%概率出现。前两段优先体验，每轮第三段只作为新剧情触发一次，回看不重复结算奖励。金善旴的数学设定已补充为数学差、自称初二就放弃数学。
+
+自由聊天失败后只自动重试一次，再失败就撤回该条消息并把文字留在输入框，恢复正常输入。发送上下文固定截到本条玩家消息，避免后来收到的固定收尾导致消息格式错误。旧存档中未送达的消息也会恢复为草稿。论坛生成失败不阻塞玩家继续发帖或评论。
 
 Cloudflare 的 Git 集成与静态资源规则见[官方构建说明](https://developers.cloudflare.com/workers/ci-cd/builds/)及[静态资源配置](https://developers.cloudflare.com/workers/static-assets/binding/)。Workers 与 D1 仍有[免费额度限制](https://developers.cloudflare.com/workers/platform/limits/)，不是无限请求。共享聊天与存档互相独立，服务端不保存玩家剧情。

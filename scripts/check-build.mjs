@@ -15,7 +15,7 @@ for(const [name,expected]of Object.entries(manifest.assets)){
  const actual=crypto.createHash('sha256').update(fs.readFileSync(new URL(name,publicDir))).digest('hex');
  if(actual!==expected.sha256)throw Error('Image changed: '+name);
 }
-for(const folder of ['public','src','editable'])for(const file of fs.readdirSync(new URL(folder+'/',root),{recursive:true,withFileTypes:true})){
+for(const folder of ['public','src','editable',...(fs.existsSync(new URL('game-src/',root))?['game-src']:[])])for(const file of fs.readdirSync(new URL(folder+'/',root),{recursive:true,withFileTypes:true})){
  if(!file.isFile()||!/\.(js|mjs|html|json)$/.test(file.name))continue;
  const contents=fs.readFileSync(new URL(file.name,'file:///'+file.parentPath.replaceAll('\\','/')+'/'),'utf8');
  if(contents.includes('AQ.Ab8RN6')||/AIza[\w-]{20,}/.test(contents))throw Error('Possible credential in published sources');

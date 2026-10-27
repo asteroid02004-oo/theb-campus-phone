@@ -9,22 +9,23 @@ export function createPagesClient({readConfig=()=>({}),readPreferences=()=>null,
    return url.origin;
  }
  return async function request(route,options={}){
-   if(!['/api/status','/api/session','/api/chat'].includes(route))return json(404,{error:'接口不存在。'});
+   if(!['/api/status','/api/session','/api/chat','/api/forum'].includes(route))return json(404,{error:'接口不存在。'});
    const config=readConfig(),preferences=readPreferences(),personal=!!preferences?.hasPersonalKey(),headers=new Headers(options.headers);
    const supplied=headers.get('x-player-api-key')??headers.get('x-player-gemini-key'),connection=preferences?.connection?.(),model=personal&&connection?connection.model:config.geminiModel||'gemini-3.5-flash-lite';
    // A personal key always talks to the selected provider directly. Backend availability does
    // not affect this path, and no key is sent to GitHub or the shared backend.
-   if(route==='/api/chat'&&supplied!==null){
+   if(['/api/chat','/api/forum'].includes(route)&&supplied!==null){
      try{
        if(!/^[\x21-\x7E]{8,2048}$/.test(supplied.trim()))return json(400,{error:'个人密钥格式不正确，请在设置中重新填写。'});
        let data;try{data=JSON.parse(options.body)}catch{return json(400,{error:'消息格式不正确。'})}
        const protocol=await loadProtocol();
-       return json(200,await protocol.directReply(data,supplied,{fetchImpl,model,connection}));
+       const personalFetch=(url,init={})=>fetchImpl(url,{...init,signal:options.signal?AbortSignal.any([options.signal,...(init.signal?[init.signal]:[])]):init.signal});
+       return json(200,await (route==='/api/forum'?protocol.directForumReply:protocol.directReply)(data,supplied,{fetchImpl:personalFetch,model,connection}));
      }catch(error){return json(error.status||503,{error:error.status?error.message:'个人聊天模块暂时无法连接，请刷新后重试，并检查能否访问所选服务商。'})}
    }
    let backend='';try{backend=backendOrigin(config)}catch(error){if(!personal)return json(503,{error:error.message})}
    if(personal||!backend){
-     if(route==='/api/status')return json(200,{configured:personal,verified:false,provider:personal&&connection?connection.provider:'Gemini',model,personaVersion:'2026-10-26-expanded',playerKeysAvailable:true,personalDirect:true,backendAvailable:!!backend});
+     if(route==='/api/status')return json(200,{configured:personal,verified:false,provider:personal&&connection?connection.provider:'Gemini',model,personaVersion:'2026-10-27-author-edits',playerKeysAvailable:true,personalDirect:true,backendAvailable:!!backend});
      if(route==='/api/session')return json(200,{token,local:true});
      return json(503,{error:'站长共享连接正在迁移。请在“设置与存档 → 聊天连接”填写个人 API 密钥；暂不填写仍可游玩课程和固定剧情。'});
    }
