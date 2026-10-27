@@ -1,0 +1,15 @@
+{
+  "id": "/",
+  "name": "得比高中",
+  "short_name": "得比高中",
+  "lang": "zh-CN",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#ffffff",
+  "icons": [
+    {"src": "./icons/school-crest-192-v1.png", "sizes": "192x192", "type": "image/png", "purpose": "any"},
+    {"src": "./icons/school-crest-512-v1.png", "sizes": "512x512", "type": "image/png", "purpose": "any"}
+  ]
+}
