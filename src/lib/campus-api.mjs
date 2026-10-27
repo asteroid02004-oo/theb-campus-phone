@@ -1,4 +1,5 @@
 import {forumRequest,forumPrompt,forumResult} from './forum-protocol.mjs';
+import {vocabularyRequest,vocabularyPrompt,vocabularyResult} from './vocabulary-protocol.mjs';
 import {chatMessages} from './chat-text.mjs';
 import {CHARACTERS as CAMPUS_CHARACTERS,campusPrompt,PERSONA_VERSION} from './campus-personas.mjs';
 const encoder=new TextEncoder();
@@ -32,6 +33,7 @@ export async function handleApi(req,env,upstream=fetch){
  if(req.method==='GET'&&route==='/api/status')return reply(200,{configured:!!env.GEMINI_API_KEY&&env.FREE_TIER_CONFIRMED==='true',verified:false,playerKeysAvailable:true,personaVersion:PERSONA_VERSION,provider:'Gemini',model:env.GEMINI_MODEL||'gemini-3.5-flash-lite'});
  if(route==='/api/chat')return handleCampusChat(req,env,upstream);
  if(route==='/api/forum')return handleForum(req,env,upstream);
+ if(route==='/api/vocabulary')return handleVocabulary(req,env,upstream);
  return reply(404,{error:'接口不存在。'});
 }
 async function handleCampusChat(req,env,upstream){
@@ -86,4 +88,11 @@ async function handleForum(req,env,upstream){
  if(!env.GEMINI_API_KEY||env.FREE_TIER_CONFIRMED!=='true')return reply(503,{error:'默认连接暂未就绪，可在设置填写个人连接。'});
  if(!req.headers.get('content-type')?.includes('application/json'))return reply(400,{error:'帖子格式不正确。'});
  try{const raw=await req.text();if(raw.length>160000)return reply(413,{error:'帖子内容过长。'});let parsed;try{parsed=JSON.parse(raw)}catch{return reply(400,{error:'帖子格式不正确。'})}const data=forumRequest(parsed);await rateLimit(req,env);const text=await ask(env,[{role:'user',content:JSON.stringify(data)}],forumPrompt(data),2200,upstream);return reply(200,forumResult(text,data));}catch(e){return reply(e.status||503,{error:e.status?e.message:'同学这次暂时没有新的回复。'})}
+}
+async function handleVocabulary(req,env,upstream){
+ if(req.method!=='POST')return reply(405,{error:'请求方式不正确。'});
+ if(req.headers.get('origin')!==new URL(req.url).origin||!await authorized(req,env))return reply(403,{error:'页面连接已过期，请重新打开单词本。'});
+ if(!env.GEMINI_API_KEY||env.FREE_TIER_CONFIRMED!=='true')return reply(503,{error:'默认连接暂未就绪，请在手机设置中填写个人连接；词库和复习仍可使用。'});
+ if(!req.headers.get('content-type')?.includes('application/json'))return reply(400,{error:'词条格式不正确。'});
+ try{const raw=await req.text();if(raw.length>12000)return reply(413,{error:'词条内容过长。'});let parsed;try{parsed=JSON.parse(raw)}catch{return reply(400,{error:'词条格式不正确。'})}const data=vocabularyRequest(parsed);await rateLimit(req,env);const text=await ask(env,[{role:'user',content:JSON.stringify(data)}],vocabularyPrompt,3500,upstream);return reply(200,vocabularyResult(text,data));}catch(e){return reply(e.status||503,{error:e.status?e.message:'本次释义暂未生成，原词条保留。'})}
 }

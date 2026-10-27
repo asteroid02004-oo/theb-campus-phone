@@ -25,7 +25,7 @@ export function createWorker(upstream=fetch){
    if(request.headers.has('x-player-api-key'))return Response.json({error:'请刷新页面，个人连接会直接访问你选择的服务商。'},{status:400,headers:{'Cache-Control':'no-store'}});
    const origin=request.headers.get('origin');
    if(origin&&origin!==url.origin&&!String(env.ALLOWED_ORIGINS||'').split(',').map(x=>x.trim()).includes(origin))return Response.json({error:'请从游戏页面连接。'},{status:403,headers:{'Cache-Control':'no-store'}});
-   if(['/api/status','/api/session','/api/chat','/api/forum'].includes(url.pathname)&&request.method!=='OPTIONS'){
+   if(['/api/status','/api/session','/api/chat','/api/forum','/api/vocabulary'].includes(url.pathname)&&request.method!=='OPTIONS'){
     try{await ensureDatabase(env.DB)}catch{return unavailable()}
    }
    return api.fetch(request,env,ctx);
