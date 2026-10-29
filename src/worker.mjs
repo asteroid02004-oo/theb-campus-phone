@@ -18,7 +18,7 @@ export function createWorker(upstream=fetch){
  const api=createSharedApi(upstream);
  return {async fetch(request,env,ctx){
   const url=new URL(request.url);
-  if(url.pathname==='/healthz')return Response.json({ok:true,app:'deobi-campus-phone',deployment:'github-workers',version:'2026-10-28-vocabulary-kkt'},{headers:{'Cache-Control':'no-store'}});
+  if(url.pathname==='/healthz')return Response.json({ok:true,app:'deobi-campus-phone',deployment:'github-workers',version:'2026-10-29-trip-group'},{headers:{'Cache-Control':'no-store'}});
   if(url.pathname.startsWith('/api/')){
    // A generic personal-key header belongs to browser direct mode. Never
    // silently charge the shared account if a stale client sends it here.

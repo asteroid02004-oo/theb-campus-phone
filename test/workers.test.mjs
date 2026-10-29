@@ -9,6 +9,12 @@ const base='https://campus-test.workers.dev';
 const owner='owner-test-key-abcdefghijklmnopqrstuvwxyz';
 const payload=()=>({chatId:'ju',player:{name:'夏宁',identity:'普通学生'},messages:[{role:'user',content:'明天读书会见。'}],memory:'约好把上次的书带来。'});
 const reply=text=>Response.json({candidates:[{content:{parts:[{text}]}}]});
+test('shared group chat requires a signed session, keeps owner secrets on the server and filters nonmembers',async t=>{
+ const f=fixture(t),calls=[],worker=createWorker(async(url,options)=>{calls.push({url,options});return reply(JSON.stringify({messages:[{speaker:'ju',text:'啊，一起去吧。'},{speaker:'sun',text:'不在本群的回复。'}]}))});
+ const body=JSON.stringify({members:['ju','q'],player:{name:'夏宁',grade:'高二'},addresses:{ju:'夏宁',q:'小宁'},messages:[{speaker:'player',text:'我们一起去哪里？'}]}),headers={origin:base,'content-type':'application/json'};
+ assert.equal((await worker.fetch(f.request('/api/group',{method:'POST',headers,body}),f.env)).status,403);assert.equal(calls.length,0);
+ const {token,cookie}=await f.signed();const response=await worker.fetch(f.request('/api/group',{method:'POST',headers:{...headers,cookie,'x-phone-token':token},body}),f.env);assert.equal(response.status,200);const data=await response.json();assert.deepEqual(data.messages,[{speaker:'ju',text:'啊，一起去吧。'}]);assert.equal(calls.length,1);assert.equal(calls[0].options.headers['x-goog-api-key'],owner);assert.ok(!JSON.stringify(data).includes(owner));assert.ok(calls[0].options.body.includes('小宁'));
+});
 test('shared vocabulary dictionary keeps owner keys server-side and requires the existing signed session',async t=>{
  const f=fixture(t),calls=[],worker=createWorker(async(url,options)=>{calls.push({url,options});return reply(JSON.stringify({words:[{term:'campus',meaning:'校园',example:'Our campus is quiet.',translation:'校园很安静。'}]}))});
  const payload=JSON.stringify({words:[{term:'campus',example:'Our campus is quiet.'}]}),headers={origin:base,'content-type':'application/json'};

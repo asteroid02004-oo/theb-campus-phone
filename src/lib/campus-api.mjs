@@ -101,6 +101,6 @@ async function handleVocabulary(req,env,upstream){
 async function handleGroup(req,env,upstream){
  if(req.method!=='POST')return reply(405,{error:'请求方式不正确。'});
  if(req.headers.get('origin')!==new URL(req.url).origin||!await authorized(req,env))return reply(403,{error:'页面连接已过期，请重新进入群聊。'});
- if(!env.GEMINI_API_KEY||env.FREE_TIER_CONFIRMED!=='true')return reply(503,{error:'本地预览未配置站长共享连接，可在设置填写个人 API 体验群聊。'});
+ if(!env.GEMINI_API_KEY||env.FREE_TIER_CONFIRMED!=='true')return reply(503,{error:'站长共享连接暂未就绪，可在设置填写个人 API 进行群聊。'});
  try{const text=await req.text();if(text.length>140000)return reply(413,{error:'群聊内容过长。'});const data=groupRequest(JSON.parse(text));await rateLimit(req,env);const answer=await ask(env,[{role:'user',content:JSON.stringify(data.messages)}],groupPrompt(data),3000,upstream);return reply(200,groupResult(answer,data))}catch(error){return reply(error.status||503,{error:error.status?error.message:'这次群聊暂时未能回复。'})}
 }
