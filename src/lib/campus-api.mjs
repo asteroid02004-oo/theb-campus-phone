@@ -1,5 +1,6 @@
 import {forumRequest,forumPrompt,forumResult} from './forum-protocol.mjs';
 import {vocabularyRequest,vocabularyPrompt,vocabularyResult} from './vocabulary-protocol.mjs';
+import {groupRequest,groupPrompt,groupResult} from './group-protocol.mjs';
 import {chatMessages} from './chat-text.mjs';
 import {CHARACTERS as CAMPUS_CHARACTERS,campusPrompt,PERSONA_VERSION} from './campus-personas.mjs';
 const encoder=new TextEncoder();
@@ -34,6 +35,7 @@ export async function handleApi(req,env,upstream=fetch){
  if(route==='/api/chat')return handleCampusChat(req,env,upstream);
  if(route==='/api/forum')return handleForum(req,env,upstream);
  if(route==='/api/vocabulary')return handleVocabulary(req,env,upstream);
+ if(route==='/api/group')return handleGroup(req,env,upstream);
  return reply(404,{error:'接口不存在。'});
 }
 async function handleCampusChat(req,env,upstream){
@@ -95,4 +97,10 @@ async function handleVocabulary(req,env,upstream){
  if(!env.GEMINI_API_KEY||env.FREE_TIER_CONFIRMED!=='true')return reply(503,{error:'默认连接暂未就绪，请在手机设置中填写个人连接；词库和复习仍可使用。'});
  if(!req.headers.get('content-type')?.includes('application/json'))return reply(400,{error:'词条格式不正确。'});
  try{const raw=await req.text();if(raw.length>12000)return reply(413,{error:'词条内容过长。'});let parsed;try{parsed=JSON.parse(raw)}catch{return reply(400,{error:'词条格式不正确。'})}const data=vocabularyRequest(parsed);await rateLimit(req,env);const text=await ask(env,[{role:'user',content:JSON.stringify(data)}],vocabularyPrompt,3500,upstream);return reply(200,vocabularyResult(text,data));}catch(e){return reply(e.status||503,{error:e.status?e.message:'本次释义暂未生成，原词条保留。'})}
+}
+async function handleGroup(req,env,upstream){
+ if(req.method!=='POST')return reply(405,{error:'请求方式不正确。'});
+ if(req.headers.get('origin')!==new URL(req.url).origin||!await authorized(req,env))return reply(403,{error:'页面连接已过期，请重新进入群聊。'});
+ if(!env.GEMINI_API_KEY||env.FREE_TIER_CONFIRMED!=='true')return reply(503,{error:'本地预览未配置站长共享连接，可在设置填写个人 API 体验群聊。'});
+ try{const text=await req.text();if(text.length>140000)return reply(413,{error:'群聊内容过长。'});const data=groupRequest(JSON.parse(text));await rateLimit(req,env);const answer=await ask(env,[{role:'user',content:JSON.stringify(data.messages)}],groupPrompt(data),3000,upstream);return reply(200,groupResult(answer,data))}catch(error){return reply(error.status||503,{error:error.status?error.message:'这次群聊暂时未能回复。'})}
 }

@@ -4,6 +4,7 @@ import {validatedCampusState} from './direct-core.mjs';
 import {askProvider,normalizeConnection} from './provider-api.mjs';
 import {chatMessages} from './chat-text.mjs';
 import {vocabularyRequest,vocabularyPrompt,vocabularyResult} from './vocabulary-protocol.mjs';
+import {groupRequest,groupPrompt,groupResult} from './group-protocol.mjs';
 
 export async function directReply(data,key,{fetchImpl=fetch,model='gemini-3.5-flash-lite',connection}={}){
  const invalid=message=>Object.assign(Error(message),{status:400});
@@ -28,3 +29,4 @@ export async function directReply(data,key,{fetchImpl=fetch,model='gemini-3.5-fl
 
 export async function directForumReply(raw,key,{fetchImpl=fetch,model='gemini-3.5-flash-lite',connection}={}){const data=forumRequest(raw),selected=normalizeConnection(connection||{model});const text=await askProvider(selected,key,[{role:'user',content:JSON.stringify(data)}],forumPrompt(data),selected.maxOutputTokens,{fetchImpl});return {...forumResult(text,data),model:selected.model,provider:selected.provider};}
 export async function directVocabularyReply(raw,key,{fetchImpl=fetch,model='gemini-3.5-flash-lite',connection}={}){const data=vocabularyRequest(raw),selected=normalizeConnection(connection||{model}),text=await askProvider(selected,key,[{role:'user',content:JSON.stringify(data)}],vocabularyPrompt,selected.maxOutputTokens,{fetchImpl});return vocabularyResult(text,data)}
+export async function directGroupReply(raw,key,{fetchImpl=fetch,model='gemini-3.5-flash-lite',connection}={}){const data=groupRequest(raw),selected=normalizeConnection(connection||{model}),text=await askProvider(selected,key,[{role:'user',content:JSON.stringify(data.messages)}],groupPrompt(data),selected.maxOutputTokens,{fetchImpl});return groupResult(text,data)}

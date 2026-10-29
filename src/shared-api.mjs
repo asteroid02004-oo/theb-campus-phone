@@ -16,7 +16,7 @@ export function createWorker(upstream=fetch){
   try{
     if(cross&&!allowed.has(origin))return json(403,'这个网页尚未获准连接共享聊天后端。');
     if(route==='/healthz')return finish(Response.json({ok:true}));
-    if(!['/api/status','/api/session','/api/chat','/api/forum','/api/vocabulary'].includes(route))return finish(json(404,'接口不存在。'));
+    if(!['/api/status','/api/session','/api/chat','/api/forum','/api/vocabulary','/api/group'].includes(route))return finish(json(404,'接口不存在。'));
     if(request.method==='OPTIONS'){
       const method=request.headers.get('access-control-request-method'),requested=(request.headers.get('access-control-request-headers')||'').toLowerCase().split(',').map(x=>x.trim()).filter(Boolean);
       if(!origin||!['GET','POST'].includes(method)||requested.some(x=>!['content-type','x-phone-token','x-player-gemini-key'].includes(x)))return finish(json(403,'跨域请求配置不正确。'));
