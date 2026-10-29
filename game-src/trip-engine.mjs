@@ -1,5 +1,6 @@
 import DATA from './trip-data.mjs';
 import Sim from './simulation.mjs';
+import {peerReferences} from './speech-addresses.mjs';
 const IDS=['jae','ju','young','sun','q'],NAMES={jae:'李贤在',ju:'李柱延',young:'金泳勋',sun:'金善旴',q:'池昌民'},GRADES={jae:3,ju:2,young:3,sun:1,q:2};
 const pair=s=>s.slice().sort().join(',');
 function splitOldQueue(queue){return queue.flatMap(node=>{if(node.type==='choice')return [{...node,branches:node.branches.map(splitOldQueue)}];const out=[];let speaker=node.speaker;for(const line of node.text.replace(/\s+(?=他)/g,'\n').split('\n')){const text=line.trim();if(!text)continue;const id=IDS.find(id=>NAMES[id]===text);if(id){speaker=id;continue}const who=speaker&&out.length&&text.startsWith('他')?'':speaker;if(out.at(-1)?.speaker===who)out.at(-1).text+='\n'+text;else out.push({...node,speaker:who,text})}return out})}
@@ -19,9 +20,9 @@ export function createGroup(g,members,title=''){ensure(g);if(members.length<2||m
 export function startGroupStory(group){if(group.pending)return false;const s=DATA.groups.find(s=>s.members.every(id=>group.members.includes(id))&&!group.seen.includes(s.id));if(!s)return false;group.pending={id:s.id,queue:structuredClone(s.nodes),index:0};group.seen.push(s.id);pump(group);return true}
 export function pump(group){const p=group.pending;if(!p)return;while(p.index<p.queue.length&&p.queue[p.index].type!=='choice'){const node=p.queue[p.index++];group.messages.push({speaker:node.speaker||'system',text:node.text,at:Date.now(),script:true})}if(p.index>=p.queue.length)group.pending=null}
 export function replyGroup(group,index){const p=group.pending,node=p?.queue[p.index];if(node?.type!=='choice'||![0,1].includes(index))throw Error('请先回复当前对话。');group.messages.push({speaker:'player',text:node.options[index],at:Date.now(),script:true});p.queue.splice(p.index+1,0,...structuredClone(node.branches[index]));p.index++;pump(group)}
-export function address(text,g,{speaker='',actor='',members=[]}={}){const preferred=IDS.includes(speaker)?Sim.address(g.school,speaker,g.player?.name||'同学').preferred:g.player?.name||'同学';let out=String(text||'').replace(/【玩家(?:姓名)?】|\{玩家\}/g,preferred);const level={'高一':1,'高二':2,'高三':3}[g.school.grade]||2;
+export function address(text,g,{speaker='',actor='',members=[]}={}){const preferred=IDS.includes(speaker)?Sim.address(g.school,speaker,g.player?.name||'同学').preferred:g.player?.name||'同学';let out=peerReferences(text,speaker,members).replace(/【玩家(?:姓名)?】|\{玩家\}/g,preferred);const level={'高一':1,'高二':2,'高三':3}[g.school.grade]||2;
  const refs=[];for(const id of IDS){const short=NAMES[id].slice(-2),a=level===GRADES[id]?short:short+(level<GRADES[id]?'学长':'学弟');for(const original of [NAMES[id]+'学长',short+'学长'])out=out.replaceAll(original,()=>{const i=refs.length;refs.push(IDS.includes(speaker)?original:a);return '\uE000'+i+'\uE001'})}
  const target=actor||members.find(id=>text.includes(NAMES[id])||text.includes(NAMES[id].slice(-2)))||members[0];if(target&&(speaker==='player'||!speaker)){const a=level===GRADES[target]?NAMES[target].slice(-2):level<GRADES[target]?'学长':'学弟';out=out.replaceAll('学长',a)}
- if(IDS.includes(speaker)){out=out.replace(/学姐|学妹/g,preferred).replace(/(^|[，。！？“\n])同学(?=[，。！？、\s]|$)/g,(_,prefix)=>prefix+preferred).replaceAll('学长',level===GRADES[speaker]?'同学':level<GRADES[speaker]?'学长':'学弟')}
+ if(IDS.includes(speaker)){out=out.replace(/学姐|学妹/g,preferred).replace(/(^|[，。！？“\n])同学(?=[，。！？、\s]|$)/g,(_,prefix)=>prefix+preferred)}
  return out.replace(/\uE000(\d+)\uE001/g,(_,i)=>refs[Number(i)])}
 export default {DATA,IDS,NAMES,ensure,eligibleScenes,configure,activities,dates,begin,step,advance,rollDate,createGroup,startGroupStory,replyGroup,pump,address};
